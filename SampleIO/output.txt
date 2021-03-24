@@ -1,0 +1,89 @@
+6 Started executing...
+8 Started executing...
+1 Started executing...
+0 Started executing...
+4 Started executing...
+7 Started executing...
+2 Started executing...
+9 Started executing...
+5 Started executing...
+3 Started executing...
+---------------------------------------------
+Round 1 started.
+---------------------------------------------
+6's random Id is 5598
+6 sent it's random Id to 5
+6 sent it's random Id to 7
+0's random Id is 4407
+0 sent it's random Id to 1
+0 sent it's random Id to 9
+8's random Id is 8412
+1's random Id is 8986
+1 sent it's random Id to 0
+1 sent it's random Id to 2
+4's random Id is 2544
+4 sent it's random Id to 3
+4 sent it's random Id to 5
+3's random Id is 1450
+3 sent it's random Id to 2
+3 sent it's random Id to 4
+7's random Id is 3157
+7 sent it's random Id to 6
+7 sent it's random Id to 9
+5's random Id is 6827
+5 sent it's random Id to 4
+5 sent it's random Id to 6
+9's random Id is 9339
+9 sent it's random Id to 0
+9 sent it's random Id to 7
+2's random Id is 2840
+2 sent it's random Id to 1
+2 sent it's random Id to 3
+4's randomId from neighbors are [1450, 6827]
+3's randomId from neighbors are [2544, 2840]
+3's max id is 2840
+4's max id is 6827
+8's randomId from neighbors are []
+2's randomId from neighbors are [8986, 1450]
+8's max id is 8412
+0's randomId from neighbors are [8986, 9339]
+2's max id is 8986
+1's randomId from neighbors are [4407, 2840]
+0's max id is 9339
+8is a part of MIS
+7's randomId from neighbors are [5598, 9339]
+1's max id is 8986
+1is a part of MIS
+5's randomId from neighbors are [5598, 2544]
+9's randomId from neighbors are [4407, 3157]
+9's max id is 9339
+9is a part of MIS
+7's max id is 9339
+6's randomId from neighbors are [3157, 6827]
+5's max id is 6827
+6's max id is 6827
+5is a part of MIS
+ProcessId 5 is going to terminate!
+ProcessId 8 is going to terminate!
+ProcessId 9 is going to terminate!
+ProcessId 1 is going to terminate!
+ProcessId 6 is going to terminate!
+ProcessId 0 is going to terminate!
+ProcessId 2 is going to terminate!
+ProcessId 7 is going to terminate!
+ProcessId 4 is going to terminate!
+---------------------------------------------
+Round 2 started.
+---------------------------------------------
+3's random Id is 5654
+3's randomId from neighbors are []
+3's max id is 5654
+3is a part of MIS
+ProcessId 3 is going to terminate!
+------------------------------------
+Total rounds: 2
+------------------------------------
+Final Output from LubyMIS Algorithm is:
+Processes in MIS:[1, 3, 5, 8, 9]
+------------------------------------
+Verification Succeded! Output from DistributedMIS and SequentialMIS are Equal!
