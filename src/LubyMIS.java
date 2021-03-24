@@ -1,11 +1,4 @@
-/*
- * Project 1: Luby MIS
- *
- * @Authors
- * Biranchi Narayan Padhi  - bxp200001
- * Manasa M Bhat           - mmb190005
- * Siddarameshwar Kadagad  -  sxk190071
- * */
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
