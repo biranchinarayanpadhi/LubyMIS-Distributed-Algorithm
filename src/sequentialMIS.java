@@ -1,3 +1,16 @@
+/*
+ * Project 1: Luby MIS
+ *
+ * @Authors
+ * Biranchi Narayan Padhi  - bxp200001
+ * Manasa M Bhat           - mmb190005
+ * Siddarameshwar Kadagad  -  sxk190071
+ *
+ * Contribution---------------------------------:
+ * @Biranchi Narayan Padhi
+ * -Sequential MIS algorithm with Distributed MISSet as the reference
+ * -----------------------------------------------
+ * */
 import java.util.*;
 public class sequentialMIS {
 

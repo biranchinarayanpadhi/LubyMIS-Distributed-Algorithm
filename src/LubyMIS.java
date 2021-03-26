@@ -1,4 +1,28 @@
-
+/*
+ * Project 1: Luby MIS
+ *
+ * @Authors
+ * Biranchi Narayan Padhi  - bxp200001
+ * Manasa M Bhat           - mmb190005
+ * Siddarameshwar Kadagad  -  sxk190071
+ *
+ * Contribution---------------------------------:
+ * @Manasa M Bhat
+ * -LubyMIS basic class structure
+ * -Synchronization between rounds
+ * -Send Done message(i.e. 'I am part of MIS' message to neighbour)
+ * -Increment Phase (one phase has 3 rounds) and print Rounds
+ *
+ * @Biranchi Narayan Padhi
+ * -Generation of random IDs
+ * -Send IDs to neighbors
+ * -Comparison of IDs to find max ID
+ *
+ * @Siddarameshwar Kadagad
+ * -Add process to MISSet
+ * -CountDownLatch in master thread
+ * -----------------------------------------------
+ * */
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -11,15 +35,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class LubyMIS {
 
-    private static Semaphore roundSem = new Semaphore(1);
+    private static Semaphore phaseSem = new Semaphore(1);
     private static Semaphore sendIdToNeighborsSem = new Semaphore(1);
     private static Semaphore compareRecievedIdsFromNeighborsSem = new Semaphore(1);
+    private static AtomicBoolean printRound = new AtomicBoolean(true);
     private static CountDownLatch latch;
     public static final AtomicInteger waitCounter = new AtomicInteger(0);
     public static final AtomicInteger activeProcesses = new AtomicInteger(0);
     private static HashSet<Integer> MISSet;
-    private static final AtomicInteger totalRounds = new AtomicInteger(0);
-    private static final AtomicBoolean incrementRound = new AtomicBoolean(false);
+    private static final AtomicInteger totalPhases = new AtomicInteger(0);
+    private static final AtomicBoolean incrementPhase = new AtomicBoolean(false);
 
     public static class Process implements Runnable {
         private int processId;
@@ -80,13 +105,18 @@ public class LubyMIS {
             }
         }
 
-        public void waitForAllProcesses() {
+        public void waitForAllProcesses(int round) {
             waitCounter.getAndIncrement();
             while (waitCounter.get() < activeProcesses.get()) ;
             try {
                 Thread.sleep(1000);
                 //reset the waitCounter to n
-                waitCounter.compareAndSet(activeProcesses.get(), 0);
+                boolean updatedFlag = waitCounter.compareAndSet(activeProcesses.get(), 0);
+                if(updatedFlag && round > 0){
+                    System.out.println("---------------------");
+                    System.out.println("Round "+round+"...");
+                    System.out.println("---------------------");
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -110,36 +140,37 @@ public class LubyMIS {
             sendIdToNeighborsSem.release();
         }
 
-        public void resetRoundFlag() {
+        public void resetPhaseFlag() {
             try {
 
-                roundSem.acquire();
+                phaseSem.acquire();
             } catch (InterruptedException e) {
                 //
             }
-            if (!incrementRound.get()) {
-                incrementRound.getAndSet(true);
+            if (!incrementPhase.get()) {
+                incrementPhase.getAndSet(true);
                 System.out.println("---------------------------------------------");
-                System.out.println("Round " + (totalRounds.get() + 1) + " started.");
+                System.out.println("Phase " + (totalPhases.get() + 1) + " started.");
                 System.out.println("---------------------------------------------");
-                
+                System.out.println("Round 1...");
+                System.out.println("---------------------");
             }
-            roundSem.release();
+            phaseSem.release();
         }
 
-        public void incrementRound() {
+        public void incrementPhase() {
             try {
 
-                roundSem.acquire();
+                phaseSem.acquire();
             } catch (InterruptedException e) {
                 //
             }
-            if (incrementRound.get()) {
-                incrementRound.getAndSet(false);
-                totalRounds.getAndIncrement();
+            if (incrementPhase.get()) {
+                incrementPhase.getAndSet(false);
+                totalPhases.getAndIncrement();
             }
 
-            roundSem.release();
+            phaseSem.release();
         }
 
         public int compareRecievedIdsFromNeighbors() {
@@ -169,31 +200,33 @@ public class LubyMIS {
         }
 
         public void addMIS(int processId) {
-            System.out.println(processId + "is a part of MIS");
+            System.out.println(processId + " is a part of MIS");
             MISSet.add(processId);
         }
 
         public void run() {
             //wait for all threads to start before executing
-            waitForAllProcesses();
+            waitForAllProcesses(0);
             System.out.println(processId + " Started executing...");
 
             while (true) {
 
+                //-----------------------Round 1-------------------------------
                 //Generate random ID and send to all threads, wait for all to finish
-                //compare received random ID and send Done, wait for all to finish
 
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                resetRoundFlag();
+                resetPhaseFlag();
                 sendIdToNeighbors();
                 //waiting for all processes to send random Ids to the neighbors
-                waitForAllProcesses();
+                waitForAllProcesses(2);
+                //-----------------------Round 2-------------------------------
 
                 //find Maximum Random Id
+                //compare received random ID and send Done, wait for all to finish
                 int maxId = compareRecievedIdsFromNeighbors();
                 System.out.println(processId + "'s max id is " + maxId);
 
@@ -203,33 +236,32 @@ public class LubyMIS {
                     //send Done message to neighbors
                     sendMessageToNeighbor();
                     //wait for all processes to receive Done message
-                    waitForAllProcesses();
+                    waitForAllProcesses(3);
 
-                    //increment round before terminating
-                    incrementRound();
+                    //increment phase before terminating
+                    incrementPhase();
                     activeProcesses.getAndDecrement();
                     latch.countDown();
-                    System.out.println("ProcessId " + processId + " is going to terminate!");
+                    System.out.println("ProcessId " + processId + " has won and is going to terminate!");
                     break;
                 }
                 //wait for all processes to receive Done message
-                waitForAllProcesses();
-
+                waitForAllProcesses(3);
+                //-----------------------Round 3-------------------------------
                 //if the neighbor is in MISSet, neighborInMIS will be true
                 if (neighborInMIS) {
                     //terminate
                     //wait for all to process the Done message
-                    waitForAllProcesses();
-                    incrementRound();
+                    waitForAllProcesses(0);
+                    incrementPhase();
                     activeProcesses.getAndDecrement();
                     latch.countDown();
-                    System.out.println("ProcessId " + processId + " is going to terminate!");
+                    System.out.println("ProcessId " + processId + " has lost and is going to terminate!");
                     break;
                 }
                 //wait for all to process the Done message
-                waitForAllProcesses();
-                incrementRound();
-
+                waitForAllProcesses(0);
+                incrementPhase();
             }
         }
     }
@@ -255,16 +287,21 @@ public class LubyMIS {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        //wait for all threads to print the terminating messages
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         //printing total number of rounds
-        System.out.println("------------------------------------");
-        System.out.println("Total rounds: " + totalRounds.get());
+        System.out.println("----------------------------------------------------------------------------");
+        System.out.println("With three rounds in each phase, Total rounds: " + totalPhases.get() * 3);
 
         //Set of processes in MIS
-        System.out.println("------------------------------------");
+        System.out.println("----------------------------------------------------------------------------");
         System.out.println("Final Output from LubyMIS Algorithm is:");
         System.out.println("Processes in MIS:" + MISSet);
-        System.out.println("------------------------------------");
+        System.out.println("----------------------------------------------------------------------------");
         
       
         //returning the MISSet to the caller
